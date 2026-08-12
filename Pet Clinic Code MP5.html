@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <title>Pet Clinic Records</title>
+</head>
+<body>
+    <h1>Pet Clinic Management System</h1>
+        <input type="hidden" id="editIndex" value="-1">
+    Pet Name:
+    <input type="text" id="petName"><br><br>
+    Owner Name:
+    <input type="text" id="ownerName"><br><br>
+    Species:
+    <input type="text" id="petSpecies"><br><br>
+    Age:
+    <input type="number" id="petAge"><br><br>
+    Reason for Visit:
+    <input type="text" id="visitReason"><br><br>
+    <input type="button" onclick="saveRecord()" value="Save Record">
+    <button onclick="clearForm()">Cancel</button>
+<hr>
+    Search Pet Name:
+    <input type="text" id="searchName">
+    <button onclick="searchRecord()">Search</button>
+    <button onclick="sortRecords()">Sort by Pet Name</button>
+<h2>Patient List</h2>
+    <table border="1" cellpadding="10">
+     <thead>
+        <tr>
+        <th>Number</th>
+        <th>Pet Name</th>
+        <th>Owner</th>
+        <th>Species</th>
+        <th>Age</th>
+        <th>Reason for Visit</th>
+        <th>Actions</th>
+        </tr>
+     </thead>
+    <tbody id="recordTable">
+</tbody>
+</table>
+        <h3>Total Patients: <span id="totalRecords">0</span></h3>
+<script>
+        let records = [];
+        function saveRecord() {
+            let pet = document.getElementById("petName").value;
+            let owner = document.getElementById("ownerName").value;
+            let species = document.getElementById("petSpecies").value;
+            let age = document.getElementById("petAge").value;
+            let reason = document.getElementById("visitReason").value;
+            let editIndex = parseInt(document.getElementById("editIndex").value);
+            if (pet == "" || owner == "" || species == "" || age == "" || reason == "") {
+                alert("Please complete all fields.");
+                return;
+            }
+            if (age < 0) {
+                alert("Age cannot be negative.");
+                return;
+            }
+            for (let i = 0; i < records.length; i++) {
+                if (editIndex != i) {
+                    if (records[i].pet == pet && records[i].owner == owner) {
+                        alert("This pet is already registered under this owner.");
+                        return;
+                    }
+                }
+            }
+            if (editIndex == -1) {
+                let newRecord = {
+                    pet: pet,
+                    owner: owner,
+                    species: species,
+                    age: age,
+                    reason: reason
+                };
+                records[records.length] = newRecord;
+                alert("Record added successfully.");
+            } else {
+                records[editIndex].pet = pet;
+                records[editIndex].owner = owner;
+                records[editIndex].species = species;
+                records[editIndex].age = age;
+                records[editIndex].reason = reason;
+                alert("Record updated successfully.");
+            }
+            clearForm();
+            displayRecords();
+        }
+        function displayRecords() {
+            let table = document.getElementById("recordTable");
+            table.innerHTML = "";
+            if (records.length == 0) {
+                table.innerHTML =
+                    "<tr>" +
+                    "<td colspan='7'>No records found.</td>" +
+                    "</tr>";
+                document.getElementById("totalRecords").innerHTML = records.length;
+                return;
+            }
+            for (let index = 0; index < records.length; index++) {
+                table.innerHTML +=
+                    "<tr>" +
+                    "<td>" + (index + 1) + "</td>" +
+                    "<td>" + records[index].pet + "</td>" +
+                    "<td>" + records[index].owner + "</td>" +
+                    "<td>" + records[index].species + "</td>" +
+                    "<td>" + records[index].age + "</td>" +
+                    "<td>" + records[index].reason + "</td>" +
+                    "<td>" +
+                    "<button onclick='editRecord(" + index + ")'>Edit</button> " +
+                    "<button onclick='deleteRecord(" + index + ")'>Delete</button>" +
+                    "</td>" +
+                    "</tr>";
+            }
+            document.getElementById("totalRecords").innerHTML = records.length;
+        }
+        function editRecord(index) {
+            document.getElementById("petName").value = records[index].pet;
+            document.getElementById("ownerName").value = records[index].owner;
+            document.getElementById("petSpecies").value = records[index].species;
+            document.getElementById("petAge").value = records[index].age;
+            document.getElementById("visitReason").value = records[index].reason;
+            document.getElementById("editIndex").value = index;
+        }
+        function deleteRecord(index) {
+            let answer = confirm("Are you sure you want to delete this record?");
+            if (answer == false) {
+                return;
+            }
+            for (let position = index; position < records.length - 1; position++) {
+                records[position] = records[position + 1];
+            }
+            records.length = records.length - 1;
+            clearForm();
+            displayRecords();
+            alert("Record deleted successfully.");
+        }
+        function clearForm() {
+            document.getElementById("petName").value = "";
+            document.getElementById("ownerName").value = "";
+            document.getElementById("petSpecies").value = "";
+            document.getElementById("petAge").value = "";
+            document.getElementById("visitReason").value = "";
+            document.getElementById("editIndex").value = "-1";
+        }
+        function searchRecord() {
+            let search = document.getElementById("searchName").value;
+            let table = document.getElementById("recordTable");
+            table.innerHTML = "";
+            let found = false;
+            for (let i = 0; i < records.length; i++) {
+                if (records[i].pet == search) {
+                    table.innerHTML +=
+                        "<tr>" +
+                        "<td>" + (i + 1) + "</td>" +
+                        "<td>" + records[i].pet + "</td>" +
+                        "<td>" + records[i].owner + "</td>" +
+                        "<td>" + records[i].species + "</td>" +
+                        "<td>" + records[i].age + "</td>" +
+                        "<td>" + records[i].reason + "</td>" +
+                        "<td>" +
+                        "<button onclick='editRecord(" + i + ")'>Edit</button> " +
+                        "<button onclick='deleteRecord(" + i + ")'>Delete</button>" +
+                        "</td>" +
+                        "</tr>";
+                    found = true;
+                }
+            }
+            if (found == false) {
+                table.innerHTML =
+                    "<tr><td colspan='7'>Record not found.</td></tr>";
+            }
+        }
+        function sortRecords() {
+            for (let i = 0; i < records.length - 1; i++) {
+                for (let j = 0; j < records.length - i - 1; j++) {
+                    if (records[j].pet.toLowerCase() > records[j + 1].pet.toLowerCase()) {
+                        let temp = records[j];
+                        records[j] = records[j + 1];
+                        records[j + 1] = temp;
+                    }
+                }
+            }
+            displayRecords();
+        }
+        displayRecords();
+</script>
+</body>
+</html>
+ 
